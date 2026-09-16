@@ -15,7 +15,21 @@
 Превью — это ровно тот битмап, который уедет в принтер: холст в точках принтера
 (8 точек/мм), бинаризация до чистого чёрно-белого, увеличение без сглаживания.
 
-## Запуск
+## Настольное приложение
+
+```sh
+npm install
+npm run app:install
+```
+
+Собирает `Бирка.app` (Electron, без подписи), кладёт в `~/Applications` и делает алиас на
+рабочем столе. Открывается двойным кликом; при первом подключении macOS спросит разрешение
+на Bluetooth. Выбор принтера — своё окно приложения (у Electron нет встроенного диалога);
+«снова к B1-…» подключается к прошлому принтеру без вопросов. Обновить после правок кода —
+снова `npm run app:install`. Отладка оболочки на живом dev-сервере: `npm run dev`, затем
+`npm run app:dev`.
+
+## Запуск в браузере
 
 Нужны Node 22+ и Chrome (или Edge). Web Bluetooth работает только на `http://localhost`
 или `https://`.
@@ -77,7 +91,10 @@ src/
   printer/    client.ts — обёртка над @mmote/niimbluelib: подключение, RFID, печать
   state.ts    сигналы Preact + localStorage
   ui/         TopBar (принтер, лента, формат), LabelSidebar ×2 (текст, IconPicker, Library),
-              Bed (превью с линейками), PrintPanel, LogPanel
+              Bed (превью с линейками), PrintPanel, LogPanel, BlePicker (выбор устройства в Electron)
+electron/     main.cjs (окно, проброс списка Bluetooth-устройств), preload.cjs (мост window.birka)
+build/        icon.svg — исходник иконки приложения
+scripts/      install-app.sh — сборка .app и установка в ~/Applications
 docs/
   CONTEXT.md  живой контекст проекта: термины, решения, что проверено
   adr/        архитектурные решения

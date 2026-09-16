@@ -30,7 +30,7 @@ function Device() {
           <button type="button" class="primary small" disabled={!supported} onClick={() => connect()}>
             Подключить
           </button>
-          {last && supported && (
+          {last && supported && (typeof navigator.bluetooth?.getDevices === "function" || !!window.birka) && (
             <button type="button" class="link" onClick={() => connect({ quick: true })} title="Без диалога выбора устройства">
               снова к {last}
             </button>

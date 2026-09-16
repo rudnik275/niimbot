@@ -68,7 +68,6 @@ function normLabel(l: Partial<LabelSpec> | undefined): LabelSpec {
 export const labels = signal<LabelSpec[]>(
   saved.labels?.length ? saved.labels.map(normLabel) : [{ ...emptyLabel(), icon: { id: "bolt", params: { head: "cyl", thread: "full", drive: "none" } }, title: "M3×6", caption: "болт" }, emptyLabel()],
 );
-export const activeSlot = signal(0);
 export const mirror = signal(saved.mirror ?? false);
 export const customMedia = signal<MediaProfile[]>(saved.customMedia ?? []);
 export const bindings = signal<Record<string, string>>(saved.bindings ?? {});
@@ -203,11 +202,4 @@ effect(() => {
       /* quota or private mode: state simply is not persisted */
     }
   }, 150);
-});
-
-// keep active slot valid when media changes
-effect(() => {
-  const n = media.value.slots;
-  if (activeSlot.value >= n) activeSlot.value = 0;
-  if (mirror.value && activeSlot.value > 0) activeSlot.value = 0;
 });

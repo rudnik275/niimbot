@@ -1,6 +1,9 @@
 .DS_Store
 node_modules/
 dist/
+release/
+build/icon.png
+build/icon.svg.png
 __pycache__/
 .venv/
 *.local

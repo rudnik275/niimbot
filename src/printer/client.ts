@@ -61,6 +61,8 @@ const initial: PrinterSnapshot = { state: "disconnected", densityMin: 1, density
 
 export const printer = signal<PrinterSnapshot>(initial);
 export const printerLog = signal<string[]>([]);
+/** True while a "reconnect to the last printer" attempt is pending (the Electron chooser auto-picks it). */
+export const quickConnectWanted = signal(false);
 
 let client: NiimbotAbstractClient | undefined;
 let lastHeartbeat: HeartbeatData | undefined;
@@ -180,6 +182,7 @@ export async function connect(opts: { quick?: boolean } = {}): Promise<void> {
   attach(c);
   client = c;
   patch({ state: "connecting", error: undefined });
+  quickConnectWanted.value = !!opts.quick;
   try {
     let done = false;
     if (opts.quick && typeof navigator.bluetooth.getDevices === "function") {
@@ -205,6 +208,8 @@ export async function connect(opts: { quick?: boolean } = {}): Promise<void> {
     patch({ state: "disconnected", error: cancelled ? undefined : msg });
     log(cancelled ? "Выбор устройства отменён" : `Ошибка подключения: ${msg}`);
     if (client === c) client = undefined;
+  } finally {
+    quickConnectWanted.value = false;
   }
 }
 

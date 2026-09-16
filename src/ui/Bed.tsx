@@ -4,7 +4,7 @@ import { labelIsEmpty } from "../model/label";
 import { DPMM, pageSizePx, slotRects } from "../model/media";
 import { renderPage } from "../render/draw";
 import { countInk } from "../render/raster";
-import { activeSlot, fontsVersion, media, mirror, pageLabels, printSettings, swapSlots } from "../state";
+import { fontsVersion, media, mirror, pageLabels, printSettings, swapSlots } from "../state";
 
 function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -61,6 +61,7 @@ function Ruler({ lengthMm, scale, vertical }: { lengthMm: number; scale: number;
   );
 }
 
+/** Pixel-exact preview of the whole feed unit with mm rulers. Display only. */
 export function Bed() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { ref: wrapRef, w: wrapW } = useWidth<HTMLDivElement>();
@@ -72,7 +73,6 @@ export function Bed() {
   const fonts = fontsVersion.value;
   const { cols, rows } = pageSizePx(m);
   const slots = slotRects(m);
-  const active = activeSlot.value;
 
   const avail = Math.max(200, wrapW - RULER - 48);
   const scale = Math.max(1, Math.min(3, Math.floor(avail / cols)));
@@ -104,23 +104,16 @@ export function Bed() {
           <canvas ref={canvasRef} width={cols} height={rows} style={{ width: cols * scale, height: rows * scale }} />
           {slots.map((s, i) => {
             const spec = specs[i];
-            const isActive = i === active || (mirror.value && i > 0 && active === 0);
             return (
-              <button
+              <div
                 key={i}
-                type="button"
-                class={`slot ${isActive ? "active" : ""} ${i > 0 ? "cut" : ""}`}
+                class={`slot ${i > 0 ? "cut" : ""}`}
                 style={{ left: s.x * scale, top: s.y * scale, width: s.w * scale, height: s.h * scale }}
-                onClick={() => {
-                  if (mirror.value && i > 0) return;
-                  activeSlot.value = i;
-                  document.getElementById(`title-${i}`)?.focus();
-                }}
-                aria-label={`Наклейка ${i + 1}`}
+                aria-hidden="true"
               >
                 <span class="slot-tag mono">{m.slots > 1 ? i + 1 : ""}</span>
                 {spec && labelIsEmpty(spec) && <span class="slot-empty">пусто</span>}
-              </button>
+              </div>
             );
           })}
         </div>

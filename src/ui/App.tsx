@@ -3,6 +3,7 @@ import { findMediaByBarcode } from "../model/media";
 import { printer } from "../printer/client";
 import { media, mediaList, selectMedia } from "../state";
 import { Bed } from "./Bed";
+import { BlePicker } from "./BlePicker";
 import { LabelSidebar } from "./LabelSidebar";
 import { LogPanel } from "./LogPanel";
 import { PrintPanel } from "./PrintPanel";
@@ -23,9 +24,10 @@ export function App() {
   });
 
   const slots = media.value.slots;
+  const inElectron = typeof window !== "undefined" && !!window.birka;
 
   return (
-    <div class={`app ${slots > 1 ? "two" : "one"}`}>
+    <div class={`app ${slots > 1 ? "two" : "one"} ${inElectron ? "in-electron" : ""}`}>
       <TopBar />
       <div class="workspace">
         <LabelSidebar slot={0} />
@@ -36,6 +38,7 @@ export function App() {
         </main>
         {slots > 1 && <LabelSidebar slot={1} />}
       </div>
+      <BlePicker />
     </div>
   );
 }
