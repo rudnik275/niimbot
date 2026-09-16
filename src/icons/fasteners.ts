@@ -225,11 +225,11 @@ export const bolt: IconDef = {
       name: "Головка",
       default: "cyl",
       options: [
-        { id: "cyl", name: "Цилиндр (DIN 912)" },
-        { id: "hex", name: "Шестигранник (DIN 933)" },
-        { id: "button", name: "Полусфера (ISO 7380)" },
-        { id: "pan", name: "Полукруглая (DIN 7985)" },
+        { id: "cyl", name: "Цилиндрическая (DIN 912)" },
         { id: "flat", name: "Потайная (DIN 965)" },
+        { id: "hex", name: "Шестигранная, обычный болт (DIN 933)" },
+        { id: "pan", name: "Полукруглая (DIN 7985)" },
+        { id: "button", name: "Полусфера (ISO 7380)" },
         { id: "none", name: "Без головки (шпилька)" },
       ],
     },
@@ -355,20 +355,34 @@ const standoff: IconDef = {
     ]),
 };
 
+/** Brass heat-set threaded insert for 3D prints: end view + knurled side view. */
 const insert: IconDef = {
   id: "insert",
-  name: "Втулка с резьбой",
+  name: "Втулка латунная (3D-печать)",
   category: "fasteners",
-  caption: "втулка",
-  keywords: ["втулка", "insert", "heat set", "запрессовка", "3d"],
+  caption: "втулки",
+  keywords: ["втулка", "латунная", "вставка", "резьбовая", "insert", "heat set", "запрессовка", "3d", "печать", "m3"],
   render: () => {
-    const shapes: Shape[] = [S(rect(18, 6, 34, 88)), S(rect(28, 6, 14, 88), { weight: 0.8 })];
-    // two knurled bands, drawn as teeth on both silhouette edges
-    for (const y of [16, 58]) {
-      shapes.push(S(poly([[18, y], [11, y + 6], [18, y + 12], [11, y + 18], [18, y + 24]], false)));
-      shapes.push(S(poly([[52, y], [59, y + 6], [52, y + 12], [59, y + 18], [52, y + 24]], false)));
-    }
-    return art(70, shapes);
+    const shapes: Shape[] = [];
+    // end view: outer ring with the threaded bore
+    shapes.push(S(circle(30, 50, 27)), S(circle(30, 50, 11)));
+    // side view: short cylinder, open end left, lead-in taper right
+    const x0 = 72, x1 = 178, top = 24, bot = 76;
+    shapes.push(S(poly([[x0, top], [x0, bot]], false)));
+    shapes.push(S(poly([[x1, top + 6], [x1 + 8, top + 14], [x1 + 8, bot - 14], [x1, bot - 6]], false)));
+    // two knurled bands with a smooth groove between them
+    const band = (a: number, b: number): void => {
+      shapes.push(S(zigzag(a, b, top, 8, 12, false)), S(zigzag(a, b, bot, 8, 12, true)));
+    };
+    band(x0, x0 + 40);
+    band(x0 + 62, x1);
+    shapes.push(S(line(x0 + 40, top + 4, x0 + 62, top + 4)), S(line(x0 + 40, bot - 4, x0 + 62, bot - 4)));
+    shapes.push(S(line(x0 + 40, top - 4, x0 + 40, top + 4)), S(line(x0 + 62, top - 4, x0 + 62, top + 4)));
+    shapes.push(S(line(x0 + 40, bot - 4, x0 + 40, bot + 4)), S(line(x0 + 62, bot - 4, x0 + 62, bot + 4)));
+    shapes.push(S(line(x1, top + 6, x1, top - 4)), S(line(x1, bot - 6, x1, bot + 4)));
+    // threaded bore, hidden lines
+    shapes.push(S(line(x0, 40, x1 + 4, 40), { weight: 0.7 }), S(line(x0, 60, x1 + 4, 60), { weight: 0.7 }));
+    return art(190, shapes);
   },
 };
 

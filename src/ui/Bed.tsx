@@ -4,7 +4,7 @@ import { labelIsEmpty } from "../model/label";
 import { DPMM, pageSizePx, slotRects } from "../model/media";
 import { renderPage } from "../render/draw";
 import { countInk } from "../render/raster";
-import { activeSlot, fontsVersion, media, mirror, pageLabels, printSettings } from "../state";
+import { activeSlot, fontsVersion, media, mirror, pageLabels, printSettings, swapSlots } from "../state";
 
 function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -112,7 +112,9 @@ export function Bed() {
                 class={`slot ${isActive ? "active" : ""} ${i > 0 ? "cut" : ""}`}
                 style={{ left: s.x * scale, top: s.y * scale, width: s.w * scale, height: s.h * scale }}
                 onClick={() => {
-                  if (!(mirror.value && i > 0)) activeSlot.value = i;
+                  if (mirror.value && i > 0) return;
+                  activeSlot.value = i;
+                  document.getElementById(`title-${i}`)?.focus();
                 }}
                 aria-label={`Наклейка ${i + 1}`}
               >
@@ -132,6 +134,11 @@ export function Bed() {
         </span>
         <span>203 dpi · ×{scale}</span>
         <span>чернила {(ink.value * 100).toFixed(1)}%</span>
+        {m.slots > 1 && !mirror.value && (
+          <button type="button" class="link" onClick={swapSlots} title="Поменять верхнюю и нижнюю местами">
+            ⇅ поменять
+          </button>
+        )}
         <button type="button" class="link" onClick={exportPng}>
           PNG
         </button>

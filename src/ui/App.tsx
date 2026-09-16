@@ -3,11 +3,16 @@ import { findMediaByBarcode } from "../model/media";
 import { printer } from "../printer/client";
 import { media, mediaList, selectMedia } from "../state";
 import { Bed } from "./Bed";
-import { DevicePanel } from "./DevicePanel";
-import { Editor } from "./Editor";
-import { Library } from "./Library";
+import { LabelSidebar } from "./LabelSidebar";
+import { LogPanel } from "./LogPanel";
 import { PrintPanel } from "./PrintPanel";
+import { TopBar } from "./TopBar";
 
+/**
+ * Shared settings live in the top bar (printer, roll, format) and under the
+ * preview (print). Everything about ONE label lives in its own sidebar: the
+ * top label on the left, the bottom label on the right.
+ */
 export function App() {
   // Auto-select the media profile when the printer reports a roll we know.
   useSignalEffect(() => {
@@ -17,24 +22,20 @@ export function App() {
     if (known && known.id !== media.peek().id) selectMedia(known.id);
   });
 
+  const slots = media.value.slots;
+
   return (
-    <div class="app">
-      <aside class="side">
-        <header class="brand">
-          <span class="brand-mark" aria-hidden="true" />
-          <div>
-            <h1>Бирка</h1>
-            <p class="mono">наклейки · NIIMBOT</p>
-          </div>
-        </header>
-        <DevicePanel />
-        <Editor />
-        <Library />
-      </aside>
-      <main class="bed-wrap">
-        <Bed />
-        <PrintPanel />
-      </main>
+    <div class={`app ${slots > 1 ? "two" : "one"}`}>
+      <TopBar />
+      <div class="workspace">
+        <LabelSidebar slot={0} />
+        <main class="bed-wrap">
+          <Bed />
+          <PrintPanel />
+          <LogPanel />
+        </main>
+        {slots > 1 && <LabelSidebar slot={1} />}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useSignal } from "@preact/signals";
 import { CATEGORY_NAMES, artToSvg, iconById, iconsInCategory, newIconRef, normalizeParams, searchIcons, type Category, type IconDef } from "../icons";
-import { activeLabel, activeSlot, media, updateActive } from "../state";
+import { emptyLabel } from "../model/label";
+import { labels, pageLabels, updateLabel } from "../state";
 
 const CATS = Object.keys(CATEGORY_NAMES) as Category[];
 
@@ -8,10 +9,11 @@ function Svg({ html, class: cls }: { html: string; class?: string }) {
   return <span class={`svg ${cls ?? ""}`} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
-export function IconPicker() {
+/** Pictogram chooser for one slot: categories, search, grid, and the icon's parameters. */
+export function IconPicker({ slot, disabled }: { slot: number; disabled?: boolean }) {
   const cat = useSignal<Category>("fasteners");
   const q = useSignal("");
-  const l = activeLabel.value;
+  const l = (disabled ? pageLabels.value[slot] : labels.value[slot]) ?? emptyLabel();
   const curDef = l.icon ? iconById(l.icon.id) : undefined;
   const curParams = curDef ? normalizeParams(curDef, l.icon?.params) : {};
 
@@ -20,24 +22,25 @@ export function IconPicker() {
   const pick = (def: IconDef) => {
     const prevDefault = curDef?.caption ?? "";
     const keepCaption = l.caption.trim() !== "" && l.caption !== prevDefault;
-    updateActive({ icon: newIconRef(def), caption: keepCaption ? l.caption : def.caption ?? "" });
+    updateLabel(slot, { icon: newIconRef(def), caption: keepCaption ? l.caption : (def.caption ?? "") });
   };
 
   const setParam = (id: string, value: string) => {
     if (!l.icon) return;
-    updateActive({ icon: { id: l.icon.id, params: { ...curParams, [id]: value } } });
+    updateLabel(slot, { icon: { id: l.icon.id, params: { ...curParams, [id]: value } } });
   };
 
   return (
-    <div class="picker">
+    <div class="picker" aria-disabled={disabled}>
       <div class="picker-head">
-        {media.value.slots > 1 && <span class="picker-target mono">картинка → {activeSlot.value + 1}</span>}
+        <span class="lbl">Картинка</span>
         <div class="tabs">
           {CATS.map((c) => (
             <button
               key={c}
               type="button"
               class={`tab ${!q.value && cat.value === c ? "on" : ""}`}
+              disabled={disabled}
               onClick={() => {
                 cat.value = c;
                 q.value = "";
@@ -50,13 +53,14 @@ export function IconPicker() {
         <input
           class="search"
           placeholder="поиск…"
+          disabled={disabled}
           value={q.value}
           onInput={(e) => (q.value = (e.currentTarget as HTMLInputElement).value)}
         />
       </div>
 
       <div class="grid">
-        <button type="button" class={`cell ${!l.icon ? "on" : ""}`} onClick={() => updateActive({ icon: null })}>
+        <button type="button" class={`cell ${!l.icon ? "on" : ""}`} disabled={disabled} onClick={() => updateLabel(slot, { icon: null })}>
           <span class="svg none">—</span>
           <span class="cell-name">без картинки</span>
         </button>
@@ -65,10 +69,16 @@ export function IconPicker() {
             key={def.id}
             type="button"
             class={`cell ${curDef?.id === def.id ? "on" : ""}`}
+            disabled={disabled}
             onClick={() => pick(def)}
             title={def.name}
           >
-            <Svg html={artToSvg(def.render(def.id === curDef?.id ? curParams : Object.fromEntries((def.params ?? []).map((p) => [p.id, p.default]))), { size: 34 })} />
+            <Svg
+              html={artToSvg(
+                def.render(def.id === curDef?.id ? curParams : Object.fromEntries((def.params ?? []).map((p) => [p.id, p.default]))),
+                { size: 32 },
+              )}
+            />
             <span class="cell-name">{def.name}</span>
           </button>
         ))}
@@ -86,9 +96,10 @@ export function IconPicker() {
                     type="button"
                     class={`opt ${curParams[p.id] === o.id ? "on" : ""}`}
                     title={o.name}
+                    disabled={disabled}
                     onClick={() => setParam(p.id, o.id)}
                   >
-                    <Svg html={artToSvg(curDef.render({ ...curParams, [p.id]: o.id }), { size: 26 })} />
+                    <Svg html={artToSvg(curDef.render({ ...curParams, [p.id]: o.id }), { size: 24 })} />
                   </button>
                 ))}
               </div>

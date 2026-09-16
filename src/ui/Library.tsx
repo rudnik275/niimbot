@@ -1,22 +1,32 @@
 import { artToSvg, renderIcon } from "../icons";
-import { prettifyTitle } from "../model/label";
-import { activeSlot, loadInto, removeSaved, sortedLibrary, togglePin } from "../state";
+import { labelIsEmpty, prettifyTitle } from "../model/label";
+import { labels, loadInto, removeSaved, saveSlot, sortedLibrary, togglePin } from "../state";
 
-export function Library() {
+/** Recents and favourites; a click puts the label into this sidebar's slot. */
+export function Library({ slot, disabled }: { slot: number; disabled?: boolean }) {
   const items = sortedLibrary.value;
+  const cur = labels.value[slot];
   return (
-    <section class="panel library">
+    <section class="library">
       <div class="panel-head">
-        <h2>Библиотека</h2>
-        <span class="mono dim">{items.length ? `${items.length}` : "пусто"}</span>
+        <span class="lbl">Недавние</span>
+        <button
+          type="button"
+          class="link"
+          disabled={disabled || !cur || labelIsEmpty(cur)}
+          onClick={() => saveSlot(slot)}
+          title="Сохранить эту наклейку в избранное"
+        >
+          ☆ сохранить эту
+        </button>
       </div>
-      {items.length === 0 && <p class="hint">Сюда попадает всё, что вы напечатали или сохранили звёздочкой.</p>}
+      {items.length === 0 && <p class="hint">Сюда попадает всё напечатанное и сохранённое звёздочкой.</p>}
       <ul class="chips">
         {items.map((s) => {
           const art = renderIcon(s.spec.icon);
           return (
             <li key={s.key} class={`chip ${s.pinned ? "pinned" : ""}`}>
-              <button type="button" class="chip-main" onClick={() => loadInto(activeSlot.value, s.spec)} title="Подставить в текущую наклейку">
+              <button type="button" class="chip-main" disabled={disabled} onClick={() => loadInto(slot, s.spec)} title="Подставить сюда">
                 {art && <span class="svg" dangerouslySetInnerHTML={{ __html: artToSvg(art, { size: 18 }) }} />}
                 <span class="chip-title">{prettifyTitle(s.spec.title) || "—"}</span>
                 {s.spec.caption && <span class="chip-cap">{s.spec.caption}</span>}

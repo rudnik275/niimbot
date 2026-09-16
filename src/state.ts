@@ -88,7 +88,6 @@ export const pageLabels = computed<LabelSpec[]>(() => {
   return Array.from({ length: n }, (_, i) => (mirror.value && i > 0 ? src[0] : src[i]) ?? emptyLabel());
 });
 
-export const activeLabel = computed<LabelSpec>(() => labels.value[activeSlot.value] ?? emptyLabel());
 export const pageIsBlank = computed(() => pageLabels.value.every(labelIsEmpty));
 
 // --- actions -------------------------------------------------------------------
@@ -98,10 +97,6 @@ export function updateLabel(i: number, patch: Partial<LabelSpec>) {
   while (next.length <= i) next.push(emptyLabel());
   next[i] = { ...next[i]!, ...patch };
   labels.value = next;
-}
-
-export function updateActive(patch: Partial<LabelSpec>) {
-  updateLabel(activeSlot.value, patch);
 }
 
 export function loadInto(i: number, spec: LabelSpec) {
