@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40mm" height="15mm" viewBox="0 0 40 15">
+<title>M3×6 — countersunk screw</title>
+<rect width="40" height="15" fill="white"/>
+<polygon points="2.2398,6.5237 7.2043,2.6450 7.4813,2.9996 7.1970,5.3157 10.1829,9.1375 10.1226,9.6288 8.3102,11.0448 7.8189,10.9845 4.8329,7.1627 2.5169,6.8783" fill="black"/>
+<polygon points="5.2166,7.7512 7.2935,5.3418 7.5213,5.6334 5.4444,8.0428" fill="white"/>
+<polygon points="5.8631,8.5786 7.9399,6.1692 8.1677,6.4608 6.0908,8.8702" fill="white"/>
+<polygon points="6.5095,9.4060 8.5864,6.9966 8.8142,7.2882 6.7373,9.6976" fill="white"/>
+<polygon points="7.1559,10.2335 9.2328,7.8240 9.4606,8.1156 7.3837,10.5250" fill="white"/>
+<text x="13.4844" y="10.8594" font-family="Arial" font-weight="700" font-size="9.5000" fill="black">M3×6</text>
+</svg>
