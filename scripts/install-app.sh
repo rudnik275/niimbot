@@ -23,8 +23,8 @@ mkdir -p "$HOME/Applications"
 rm -rf "$HOME/Applications/Бирка.app"
 cp -R "$APP" "$HOME/Applications/Бирка.app"
 
-# 4) alias on the Desktop (replace an old one)
+# 4) shortcut on the Desktop: a symlink to the bundle (double-click launches it)
 rm -f "$HOME/Desktop/Бирка" "$HOME/Desktop/Бирка.app" 2>/dev/null || true
-osascript -e 'tell application "Finder" to make alias file to (POSIX file "'"$HOME"'/Applications/Бирка.app") at (POSIX file "'"$HOME"'/Desktop")' >/dev/null 2>&1 || true
+ln -s "$HOME/Applications/Бирка.app" "$HOME/Desktop/Бирка.app"
 
-echo "installed: $HOME/Applications/Бирка.app (alias on Desktop)"
+echo "installed: $HOME/Applications/Бирка.app (shortcut on Desktop)"
