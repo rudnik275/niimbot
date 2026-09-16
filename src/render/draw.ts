@@ -8,7 +8,7 @@ import { renderIcon, type IconArt } from "../icons";
 import type { LabelSpec } from "../model/label";
 import { prettifyTitle } from "../model/label";
 import { pageSizePx, slotRects, type MediaProfile } from "../model/media";
-import { FONT_FAMILY } from "./fonts";
+import { LABEL_FONT } from "./fonts";
 import { layoutLabel, type FontSpec, type LabelLayout, type Line, type Measure } from "./layout";
 import { binarize } from "./raster";
 
@@ -97,10 +97,8 @@ export function drawLabel(ctx: CanvasRenderingContext2D, spec: LabelSpec, W: num
     {
       title: prettifyTitle(spec.title),
       caption: spec.caption,
-      fontFamily: FONT_FAMILY[spec.font],
+      fontFamily: LABEL_FONT,
       iconAspect: art ? art.w / art.h : null,
-      frame: spec.frame,
-      captionRules: spec.captionRules,
     },
     W,
     H,
@@ -109,20 +107,10 @@ export function drawLabel(ctx: CanvasRenderingContext2D, spec: LabelSpec, W: num
 
   ctx.fillStyle = "#000";
   ctx.strokeStyle = "#000";
-
-  if (layout.frame) {
-    const f = layout.frame;
-    ctx.lineWidth = f.stroke;
-    ctx.beginPath();
-    const o = crisp(0, f.stroke);
-    ctx.roundRect(f.x + o, f.y + o, f.w - o * 2, f.h - o * 2, f.r);
-    ctx.stroke();
-  }
   if (art && layout.icon) drawIconArt(ctx, art, layout.icon, layout.icon.stroke);
   if (layout.separator) strokeLine(ctx, layout.separator);
   if (layout.title) drawText(ctx, layout.title);
   if (layout.caption) drawText(ctx, layout.caption);
-  for (const r of layout.rules) strokeLine(ctx, r);
   return layout;
 }
 
@@ -189,7 +177,7 @@ export function renderCalibrationPage(media: MediaProfile, opts: PageOptions = D
     for (let x = inset; x <= slot.w - inset; x += 40) {
       ctx.fillRect(x - 1, inset, 2, 8);
     }
-    ctx.font = `800 ${Math.round(slot.h * 0.22)}px ${FONT_FAMILY.mono}`;
+    ctx.font = `800 ${Math.round(slot.h * 0.22)}px ${LABEL_FONT}`;
     ctx.textBaseline = "top";
     ctx.fillText(String(i + 1), inset + 12, inset + 12);
     ctx.restore();

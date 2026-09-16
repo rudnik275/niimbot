@@ -29,8 +29,6 @@ export interface LayoutInput {
   fontFamily: string;
   /** Width/height ratio of the icon art, or null when there is no icon. */
   iconAspect: number | null;
-  frame: boolean;
-  captionRules: boolean;
 }
 
 export interface TextPlacement {
@@ -56,13 +54,11 @@ export interface LabelLayout {
   W: number;
   H: number;
   pad: number;
-  frame?: { x: number; y: number; w: number; h: number; r: number; stroke: number };
   /** Box the icon art is fitted into (art keeps its aspect). */
   icon?: { x: number; y: number; w: number; h: number; stroke: number };
   separator?: Line;
   title?: TextPlacement;
   caption?: TextPlacement;
-  rules: Line[];
   /** Text column, useful for debugging overlays. */
   column: { x: number; w: number };
 }
@@ -74,29 +70,13 @@ export function layoutLabel(input: LayoutInput, W: number, H: number, measure: M
   const title = input.title.trim();
   const caption = input.caption.trim();
   const hasIcon = input.iconAspect !== null && input.iconAspect > 0;
+  const hasText = Boolean(title || caption);
 
-  // --- margins -------------------------------------------------------------
   // The B1 places a label with roughly ±1 mm slop, so ink stays ≥ ~1.1 mm from
-  // the die-cut edge even without a frame.
-  let pad = Math.round(H * 0.09);
-  const frameStroke = H >= 100 ? 3 : 2;
-  let frame: LabelLayout["frame"];
-  if (input.frame) {
-    const inset = Math.round(H * 0.05);
-    frame = {
-      x: inset,
-      y: inset,
-      w: W - inset * 2,
-      h: H - inset * 2,
-      r: Math.round(H * 0.12),
-      stroke: frameStroke,
-    };
-    pad = inset + frameStroke + Math.round(H * 0.06);
-  }
-
+  // the die-cut edge.
+  const pad = Math.round(H * 0.09);
   const innerH = H - pad * 2;
   const gap = Math.round(H * 0.075);
-  const rules: Line[] = [];
 
   // --- icon + separator -----------------------------------------------------
   let icon: LabelLayout["icon"];
@@ -105,27 +85,21 @@ export function layoutLabel(input: LayoutInput, W: number, H: number, measure: M
   if (hasIcon) {
     const aspect = input.iconAspect as number;
     const cellH = Math.round(innerH * 0.9);
-    const maxW = Math.round((W - pad * 2) * (title || caption ? 0.42 : 1));
+    const maxW = Math.round((W - pad * 2) * (hasText ? 0.42 : 1));
     let w = Math.round(cellH * aspect);
     let h = cellH;
     if (w > maxW) {
       w = maxW;
       h = Math.round(w / aspect);
     }
-    const x = title || caption ? pad : Math.round((W - w) / 2);
+    const x = hasText ? pad : Math.round((W - w) / 2);
     const y = Math.round((H - h) / 2);
     icon = { x, y, w, h, stroke: strokeFor(H) };
 
-    if (title || caption) {
+    if (hasText) {
       const sx = x + w + gap;
       const sStroke = H >= 100 ? 3 : 2;
-      separator = {
-        x1: sx,
-        y1: Math.round(H * 0.17),
-        x2: sx,
-        y2: Math.round(H * 0.83),
-        stroke: sStroke,
-      };
+      separator = { x1: sx, y1: Math.round(H * 0.17), x2: sx, y2: Math.round(H * 0.83), stroke: sStroke };
       columnX = sx + sStroke + gap;
     }
   }
@@ -174,24 +148,9 @@ export function layoutLabel(input: LayoutInput, W: number, H: number, measure: M
     const x = Math.round(column.x + (column.w - captionM.width) / 2);
     const baseline = cursor + Math.round(captionM.ascent);
     captionP = { text: caption, font: captionFont, x, baseline, ...captionM };
-
-    if (input.captionRules) {
-      const ruleGap = Math.round(H * 0.07);
-      const minRule = Math.round(H * 0.12);
-      const y = baseline - Math.round(captionM.ascent * 0.42);
-      const left1 = column.x;
-      const left2 = x - ruleGap;
-      const right1 = x + Math.round(captionM.width) + ruleGap;
-      const right2 = column.x + column.w;
-      if (left2 - left1 >= minRule && right2 - right1 >= minRule) {
-        const s = 2;
-        rules.push({ x1: left1, y1: y, x2: left2, y2: y, stroke: s });
-        rules.push({ x1: right1, y1: y, x2: right2, y2: y, stroke: s });
-      }
-    }
   }
 
-  return { W, H, pad, frame, icon, separator, title: titleP, caption: captionP, rules, column };
+  return { W, H, pad, icon, separator, title: titleP, caption: captionP, column };
 }
 
 /** Line weight for icon art at a given label height (≈0.5 mm at 15 mm labels). */

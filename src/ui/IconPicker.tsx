@@ -1,6 +1,6 @@
 import { useSignal } from "@preact/signals";
 import { CATEGORY_NAMES, artToSvg, iconById, iconsInCategory, newIconRef, normalizeParams, searchIcons, type Category, type IconDef } from "../icons";
-import { activeLabel, updateActive } from "../state";
+import { activeLabel, activeSlot, media, updateActive } from "../state";
 
 const CATS = Object.keys(CATEGORY_NAMES) as Category[];
 
@@ -31,6 +31,7 @@ export function IconPicker() {
   return (
     <div class="picker">
       <div class="picker-head">
+        {media.value.slots > 1 && <span class="picker-target mono">картинка → {activeSlot.value + 1}</span>}
         <div class="tabs">
           {CATS.map((c) => (
             <button

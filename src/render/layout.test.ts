@@ -13,8 +13,6 @@ const base: LayoutInput = {
   caption: "болт",
   fontFamily: "Test",
   iconAspect: 2,
-  frame: false,
-  captionRules: true,
 };
 
 describe("layoutLabel on a 40×15 mm label (320×120)", () => {
@@ -48,7 +46,6 @@ describe("layoutLabel on a 40×15 mm label (320×120)", () => {
     const withCap = layoutLabel(base, 320, 120, fakeMeasure);
     const alone = layoutLabel({ ...base, caption: "" }, 320, 120, fakeMeasure);
     expect(alone.caption).toBeUndefined();
-    expect(alone.rules).toHaveLength(0);
     // "M3×6" is width-bound in this column, so the size is equal; a tall
     // title becomes height-bound and must grow when the caption goes away.
     expect(alone.title!.font.size).toBeGreaterThanOrEqual(withCap.title!.font.size);
@@ -56,6 +53,15 @@ describe("layoutLabel on a 40×15 mm label (320×120)", () => {
     const tallAlone = layoutLabel({ ...base, title: "M3", caption: "" }, 320, 90, fakeMeasure);
     expect(tallAlone.title!.font.size).toBeGreaterThan(tallWith.title!.font.size);
     const centre = alone.title!.baseline - alone.title!.ascent / 2;
+    expect(Math.abs(centre - 60)).toBeLessThanOrEqual(1.5);
+  });
+
+  it("a caption without a title grows and is centred", () => {
+    const withTitle = layoutLabel(base, 320, 120, fakeMeasure);
+    const alone = layoutLabel({ ...base, title: "" }, 320, 120, fakeMeasure);
+    expect(alone.title).toBeUndefined();
+    expect(alone.caption!.font.size).toBeGreaterThan(withTitle.caption!.font.size);
+    const centre = alone.caption!.baseline - alone.caption!.ascent / 2;
     expect(Math.abs(centre - 60)).toBeLessThanOrEqual(1.5);
   });
 
@@ -67,7 +73,7 @@ describe("layoutLabel on a 40×15 mm label (320×120)", () => {
   });
 
   it("keeps all ink inside the padding", () => {
-    for (const input of [base, { ...base, frame: true }, { ...base, iconAspect: null }, { ...base, title: "", caption: "только подпись" }]) {
+    for (const input of [base, { ...base, iconAspect: null }, { ...base, title: "", caption: "только подпись" }, { ...base, iconAspect: 1, title: "", caption: "" }]) {
       const l = layoutLabel(input, 320, 120, fakeMeasure);
       const boxes: Array<[number, number, number, number]> = [];
       if (l.icon) boxes.push([l.icon.x, l.icon.y, l.icon.x + l.icon.w, l.icon.y + l.icon.h]);
@@ -82,14 +88,6 @@ describe("layoutLabel on a 40×15 mm label (320×120)", () => {
     }
   });
 
-  it("frame pushes content inwards", () => {
-    const plain = layoutLabel(base, 320, 120, fakeMeasure);
-    const framed = layoutLabel({ ...base, frame: true }, 320, 120, fakeMeasure);
-    expect(framed.frame).toBeDefined();
-    expect(framed.pad).toBeGreaterThan(plain.pad);
-    expect(framed.icon!.h).toBeLessThan(plain.icon!.h);
-  });
-
   it("no icon → text column spans the whole label and there is no separator", () => {
     const l = layoutLabel({ ...base, iconAspect: null }, 320, 120, fakeMeasure);
     expect(l.icon).toBeUndefined();
@@ -98,18 +96,12 @@ describe("layoutLabel on a 40×15 mm label (320×120)", () => {
     expect(l.column.w).toBe(320 - 2 * l.pad);
   });
 
-  it("caption rules appear only when there is room on both sides", () => {
-    const roomy = layoutLabel(base, 320, 120, fakeMeasure);
-    expect(roomy.rules).toHaveLength(2);
-    const [left, right] = roomy.rules;
-    expect(left!.x2).toBeLessThan(roomy.caption!.x);
-    expect(right!.x1).toBeGreaterThan(roomy.caption!.x + roomy.caption!.width);
-
-    const crowded = layoutLabel({ ...base, caption: "очень длинная подпись под заголовком" }, 320, 120, fakeMeasure);
-    expect(crowded.rules).toHaveLength(0);
-
-    const off = layoutLabel({ ...base, captionRules: false }, 320, 120, fakeMeasure);
-    expect(off.rules).toHaveLength(0);
+  it("icon without text is centred and may use the full width", () => {
+    const l = layoutLabel({ ...base, title: "", caption: "" }, 320, 120, fakeMeasure);
+    expect(l.separator).toBeUndefined();
+    const icon = l.icon!;
+    expect(Math.abs(icon.x + icon.w / 2 - 160)).toBeLessThanOrEqual(1);
+    expect(icon.h).toBeGreaterThan(layoutLabel(base, 320, 120, fakeMeasure).icon!.h);
   });
 
   it("scales to other label sizes", () => {

@@ -54,13 +54,12 @@ const saved = load();
 function normLabel(l: Partial<LabelSpec> | undefined): LabelSpec {
   const e = emptyLabel();
   if (!l) return e;
+  // Older snapshots may carry font/frame/captionRules fields; they are dropped
+  // on purpose — every label is set in the one fixed style now.
   return {
     icon: l.icon && typeof l.icon.id === "string" ? { id: l.icon.id, params: { ...(l.icon.params ?? {}) } } : null,
     title: typeof l.title === "string" ? l.title : e.title,
     caption: typeof l.caption === "string" ? l.caption : e.caption,
-    font: l.font === "mono" ? "mono" : "grotesk",
-    frame: !!l.frame,
-    captionRules: l.captionRules ?? e.captionRules,
   };
 }
 
@@ -170,8 +169,9 @@ export function recordPrinted(specs: readonly LabelSpec[]) {
   }
 }
 
-export function saveActive() {
-  upsertSaved(activeLabel.value, { pin: true });
+export function saveSlot(i: number) {
+  const l = labels.value[i];
+  if (l) upsertSaved(l, { pin: true });
 }
 
 export function togglePin(key: string) {
